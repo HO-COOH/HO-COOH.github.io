@@ -2,6 +2,8 @@
 1. Blogging database
 2. Github statistic
 */
+import { Octokit } from "https://cdn.skypack.dev/@octokit/core";
+
 function welcome()
 {
     const hour=new Date().getHours();
@@ -19,6 +21,36 @@ function welcome()
     document.getElementById("welcome_message").innerText=welcome_message;
 }
 
-window.onload=function(){
-welcome();
+async function GetRepo() 
+{
+    const octokit = new Octokit({auth: `1912ef960016b679b03808a009c24cf87214a218`});
+    const response = await octokit.request("GET /user/repos",
+    {
+        visibility: "public"
+    });
+    return response;
+}
+
+window.onload = function ()
+{
+    welcome();
+    GetRepo().then(function (response) 
+    {
+        response.data.sort((a, b) => -(a.stargazers_count - b.stargazers_count))
+        console.log(response)
+        let project = document.getElementById("project-listing")
+        for (let i = 0; i < response.data.length; ++i)
+        {
+            let item = document.createElement("li")
+            let link = document.createElement("a")
+            let description=document.createElement("p")
+            link.setAttribute("href", response.data[i].html_url)
+            link.textContent = `${response.data[i].name} -> ${response.data[i].stargazers_count} 🌟`
+            description.textContent = response.data[i].description;
+            
+            item.appendChild(link)
+            item.appendChild(description)
+            project.appendChild(item)
+        }
+    });
 };
